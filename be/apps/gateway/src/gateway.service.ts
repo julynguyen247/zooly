@@ -7,6 +7,7 @@ export class GatewayService {
   constructor(
     @Inject('AUTH_CLIENT') private readonly authClient: ClientProxy,
   ) {}
+
   async login(payload: { username: string; password: string }) {
     return await firstValueFrom(this.authClient.send('auth.login', payload));
   }
