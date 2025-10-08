@@ -27,6 +27,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/gateway/tsconfig.app.json"
       }
+    },
+    "testset": {
+      "type": "application",
+      "root": "apps/testset",
+      "entryFile": "main",
+      "sourceRoot": "apps/testset/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/testset/tsconfig.app.json"
+      }
     }
   }
 }

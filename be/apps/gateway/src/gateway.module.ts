@@ -7,6 +7,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from '../passport/jwt.strategy';
 import { JwtAuthGuard } from '../passport/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { TestsetController } from './testset.controller';
 
 @Module({
   imports: [
@@ -31,8 +32,25 @@ import { APP_GUARD } from '@nestjs/core';
         }),
       },
     ]),
+    ClientsModule.registerAsync([
+      {
+        name: 'TEST_CLIENT',
+        useFactory: () => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [
+              process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672',
+            ],
+            queue: process.env.TEST_QUEUE || 'test_queue',
+            queueOptions: {
+              durable: false,
+            },
+          },
+        }),
+      },
+    ]),
   ],
-  controllers: [GatewayController],
+  controllers: [GatewayController, TestsetController],
   providers: [
     GatewayService,
     JwtStrategy,
