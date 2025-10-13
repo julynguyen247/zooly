@@ -17,7 +17,7 @@ export class AttemptsController {
     return this.attemptsService.startAttempt(dto);
   }
   @MessagePattern('attempts.get') get(@Payload() dto: GetAttemptDto) {
-    return this.attemptsService.getAttempt(dto);
+    return this.attemptsService.getAttempt(dto.attemptId, dto.withAnswers);
   }
   @MessagePattern('attempts.listByUser') list(
     @Payload() dto: ListAttemptsByUserDto,

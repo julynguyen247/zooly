@@ -1,0 +1,124 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - '5432:5432'
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - appnet
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: mq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - appnet
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: svc-gateway
+    command: ['node', 'dist/apps/gateway/main.js']
+    env_file:
+      - apps/gateway/.env
+    environment:
+      RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: 123456
+      DB_NAME: gateway_service
+    depends_on:
+      - postgres
+      - rabbitmq
+    ports:
+      - '3000:3000'
+    networks:
+      - appnet
+
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: svc-auth
+    command: ['node', 'dist/apps/auth/main.js']
+    env_file:
+      - apps/auth/.env
+    environment:
+      RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: 123456
+      DB_NAME: auth_service
+    depends_on:
+      - postgres
+      - rabbitmq
+    ports:
+      - '3001:3001'
+    networks:
+      - appnet
+
+  testset:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: svc-testset
+    command: ['node', 'dist/apps/testset/main.js']
+    env_file:
+      - apps/testset/.env
+    environment:
+      RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: 123456
+      DB_NAME: testset_service
+    depends_on:
+      - postgres
+      - rabbitmq
+    ports:
+      - '3002:3002'
+    networks:
+      - appnet
+
+  attempts:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: svc-attempts
+    command: ['node', 'dist/apps/attempts/main.js']
+    env_file:
+      - apps/attempts/.env
+    environment:
+      RABBITMQ_URL: amqp://admin:admin123@rabbitmq:5672
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: 123456
+      DB_NAME: attempts_service
+    depends_on:
+      - postgres
+      - rabbitmq
+    ports:
+      - '3003:3003'
+    networks:
+      - appnet
+
+volumes:
+  pg_data:
+
+networks:
+  appnet:
+    driver: bridge

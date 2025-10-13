@@ -10,7 +10,6 @@ import { Answer, PartType } from './entities/answer.entity';
 import { Repository } from 'typeorm';
 import { ClientProxy } from '@nestjs/microservices';
 import {
-  GetAttemptDto,
   StartAttemptDto,
   SubmitAttemptDto,
   UpsertAnswerDto,
@@ -22,7 +21,7 @@ export class AttemptsService {
   constructor(
     @InjectRepository(Attempt) private attempts: Repository<Attempt>,
     @InjectRepository(Answer) private answers: Repository<Answer>,
-    @Inject('TESTSET_CLIENT') private testsetClient: ClientProxy,
+    @Inject('TEST_CLIENT') private testsetClient: ClientProxy,
   ) {}
   async startAttempt(dto: StartAttemptDto) {
     const ongoing = await this.attempts.findOne({
