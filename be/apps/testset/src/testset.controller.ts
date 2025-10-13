@@ -14,4 +14,15 @@ export class TestsetController {
   getById(@Payload() data: { id: string }) {
     return this.testsetService.getTestById(data.id);
   }
+  @MessagePattern('testset.checkAnswer')
+  checkAnswer(
+    @Payload()
+    data: {
+      questionId: string;
+      userAnswer?: string | null;
+      choiceId?: string | null;
+    },
+  ) {
+    return this.testsetService.checkUserAnswer(data);
+  }
 }

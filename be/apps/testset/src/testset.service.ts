@@ -15,7 +15,9 @@ export class TestsetService {
     @InjectRepository(Question) private questions: Repository<Question>,
     @InjectRepository(Choice) private choices: Repository<Choice>,
   ) {}
-
+  private partFromPartNo(partNo: number) {
+    return partNo >= 1 && partNo <= 4 ? 'listening' : 'reading';
+  }
   async importTestJson(json: any) {
     const testSet = await this.testsets.save(
       this.testsets.create({
@@ -96,5 +98,30 @@ export class TestsetService {
         })),
       })),
     };
+  }
+  async checkUserAnswer({
+    questionId,
+    choiceId,
+    userAnswer,
+  }: {
+    questionId: string;
+    choiceId?: string | null;
+    userAnswer?: string | null;
+  }) {
+    const question = await this.questions.findOne({
+      where: { id: questionId },
+      relations: ['choices'],
+    });
+    let pickedLabel: 'A' | 'B' | 'C' | 'D' | undefined;
+    if (!question) return { correct: false };
+    if (choiceId) {
+      const ch = question.choices?.find((c) => c.id === choiceId);
+      pickedLabel = ch?.label as any;
+    } else if (userAnswer) {
+      pickedLabel = userAnswer.trim().toUpperCase() as any;
+    }
+    const correct = pickedLabel === question.correct;
+    const part = this.partFromPartNo(question.partNo);
+    return { correct, part };
   }
 }

@@ -10,6 +10,15 @@
   "monorepo": true,
   "root": "apps/auth",
   "projects": {
+    "attempts": {
+      "type": "application",
+      "root": "apps/attempts",
+      "entryFile": "main",
+      "sourceRoot": "apps/attempts/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/attempts/tsconfig.app.json"
+      }
+    },
     "auth": {
       "type": "application",
       "root": "apps/auth",
