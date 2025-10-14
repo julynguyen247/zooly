@@ -67,13 +67,14 @@ export default function LangfensHeader() {
                   onMouseEnter={() => setHovered(item)}
                 >
                   <Link
+                    key={item.href}
                     href={item.href}
-                    className={
-                      "px-3 h-10 flex items-center text-[13px] sm:text-sm font-bold text-white/95 hover:text-white transition " +
-                      (isActive
-                        ? "bg-white text-slate-900 rounded-full shadow px-3 py-[6px]"
-                        : "")
-                    }
+                    className={`inline-flex items-center justify-center px-4 py-[6px] text-sm sm:text-[15px] font-semibold transition-all rounded-full
+    ${
+      isActive
+        ? "bg-white text-[#2563EB] shadow-sm"
+        : "text-white/95 hover:bg-white/15 hover:text-white"
+    }`}
                   >
                     {item.label}
                   </Link>
