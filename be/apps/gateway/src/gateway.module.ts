@@ -9,6 +9,7 @@ import { JwtAuthGuard } from '../passport/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { TestsetController } from './testset.controller';
 import { AttemptsController } from './attempts.controller';
+import { GoogleStrategy } from '../passport/google.strategy';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { AttemptsController } from './attempts.controller';
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    GoogleStrategy,
   ],
   exports: [PassportModule, JwtStrategy],
 })

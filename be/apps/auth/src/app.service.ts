@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user/user.entity';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import type { GoogleProfileDto } from './dto/google.dto';
 @Injectable()
 export class AppService {
   constructor(
@@ -11,30 +11,52 @@ export class AppService {
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
   ) {}
-  async register(username: string, password: string) {
-    const hashed = await bcrypt.hash(password, 10);
-    const user = this.usersRepository.create({ username, password: hashed });
-    await this.usersRepository.save(user);
-    return { ok: true, message: 'User registered', user: username };
-  }
-  async login(username: string, password: string) {
-    const user = await this.usersRepository.findOne({
-      where: { username },
-    });
-    if (!user) {
-      return { ok: false, message: 'User not found' };
+
+  async upsertGoogleUser(dto: GoogleProfileDto) {
+    const googleId = dto.providerId;
+    const email = dto.email ? dto.email.toLowerCase() : null;
+    const displayName = dto.name ?? null;
+    const avatarUrl = dto.picture ?? null;
+    if (!googleId) {
+      throw new Error('Missing Google providerId (sub).');
     }
 
-    const match = await bcrypt.compare(password, user?.password);
-    if (!match) {
-      return { ok: false, message: 'Invalid credentials' };
+    let user = await this.usersRepository.findOne({ where: { googleId } });
+
+    if (!user && email) {
+      user = await this.usersRepository.findOne({ where: { email } });
+      if (user && !user.googleId) {
+        user.googleId = googleId;
+      }
     }
-    const payload = { sub: user?.id, username: user?.username };
-    const access_token = await this.jwtService.signAsync(payload);
+    if (!user) {
+      user = this.usersRepository.create({
+        googleId,
+        email,
+        displayName,
+        avatarUrl,
+        isActive: true,
+      });
+    } else {
+      if (!user.googleId) user.googleId = googleId;
+      if (!user.email && email) user.email = email;
+      if (displayName && displayName !== user.displayName)
+        user.displayName = displayName;
+      if (avatarUrl && avatarUrl !== user.avatarUrl) user.avatarUrl = avatarUrl;
+      if (user.isActive === null || user.isActive === undefined)
+        user.isActive = true;
+    }
+    const saved = await this.usersRepository.save(user);
+    const payload = { sub: saved.id, email: saved.email, provider: 'google' };
+    const accessToken = await this.jwtService.signAsync(payload);
     return {
-      ok: true,
-      access_token,
-      user: { id: user.id, username: user.username },
+      user: {
+        id: saved.id,
+        email: saved.email,
+        name: saved.displayName,
+        avatarUrl: saved.avatarUrl,
+      },
+      accessToken,
     };
   }
 }
