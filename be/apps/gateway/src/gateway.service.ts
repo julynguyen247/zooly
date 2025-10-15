@@ -17,13 +17,6 @@ export class GatewayService {
     @Inject('ATTEMPTS_CLIENT') private readonly attemptsClient: ClientProxy,
   ) {}
 
-  async login(payload: { username: string; password: string }) {
-    return await firstValueFrom(this.authClient.send('auth.login', payload));
-  }
-  async register(payload: { username: string; password: string }) {
-    return await firstValueFrom(this.authClient.send('auth.register', payload));
-  }
-
   async googleLogin(profile: any) {
     const payload = {
       provider: 'google',

@@ -10,7 +10,7 @@ export interface ModalProps {
   footer?: React.ReactNode;
   showCloseButton?: boolean;
   closeOnBackdrop?: boolean;
-  initialFocusRef?: React.RefObject<HTMLElement>;
+  initialFocusRef?: React.RefObject<HTMLElement | null>;
   preventScroll?: boolean;
   className?: string;
 }

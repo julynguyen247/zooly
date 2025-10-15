@@ -14,23 +14,15 @@ import type { Request, Response } from 'express';
 @Controller('auth')
 export class GatewayController {
   constructor(private readonly gatewayService: GatewayService) {}
-  @Public()
-  @Post('login')
-  async login(@Body() body: { username: string; password: string }) {
-    return this.gatewayService.login(body);
-  }
-  @Public()
-  @Post('register')
-  async register(@Body() body: { username: string; password: string }) {
-    return this.gatewayService.register(body);
-  }
 
+  @Public()
   @Get('google')
   @UseGuards(AuthGuard('google'))
   googleAuth() {
     // passport tự redirect Google
   }
 
+  @Public()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req, @Res() res: Response) {
@@ -40,8 +32,7 @@ export class GatewayController {
       );
       res.cookie('access_token', accessToken, {
         httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
       });
       return res.redirect(process.env.FRONTEND_SUCCESS_URL!);
     } catch (e) {
