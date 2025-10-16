@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -12,9 +12,7 @@ const api = axios.create({
 api.interceptors.request.use(
   function (config) {
     // Do something before request is sent
-    const token = localStorage.getItem("access_token");
-    const auth = token ? `Bearer ${token}` : "";
-    config.headers["Authorization"] = auth;
+
     return config;
   },
   function (error) {

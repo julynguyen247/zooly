@@ -1,5 +1,9 @@
 // src/app/page.tsx
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getUser } from "@/utils/api"; // hoặc đường dẫn nơi bạn export getUser
 
 type Skill = "listening" | "reading";
 
@@ -9,12 +13,20 @@ type TestItem = {
   part: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   skill: Skill;
   durationMin: number;
-  questionsHint?: string; // gợi ý số câu (vd: 6 ảnh, 25 câu, 54 câu...)
-  level?: "Beginner" | "Intermediate" | "Advanced"; // optional cho mini test
+  questionsHint?: string;
+  level?: "Beginner" | "Intermediate" | "Advanced";
+};
+
+type User = {
+  id: string;
+  email: string;
+  displayName?: string;
+  first_name?: string;
+  last_name?: string;
+  // bổ sung field khác nếu BE trả về
 };
 
 const listeningTests: TestItem[] = [
-  // TOEIC Listening: Part 1–4
   {
     id: "L-P1-001",
     title: "TOEIC Listening — Part 1 (Photos) – Mini",
@@ -36,16 +48,15 @@ const listeningTests: TestItem[] = [
   {
     id: "L-FULL-003",
     title: "TOEIC Listening — Full Test (Part 1–4)",
-    part: 4, // đánh dấu cao nhất cho badge hiển thị
+    part: 4,
     skill: "listening",
-    durationMin: 45, // full listening ~45 phút
+    durationMin: 45,
     questionsHint: "100 câu",
     level: "Advanced",
   },
 ];
 
 const readingTests: TestItem[] = [
-  // TOEIC Reading: Part 5–7
   {
     id: "R-P5-001",
     title: "TOEIC Reading — Part 5 (Incomplete Sentences) – Mini",
@@ -69,13 +80,33 @@ const readingTests: TestItem[] = [
     title: "TOEIC Reading — Full Test (Part 5–7)",
     part: 7,
     skill: "reading",
-    durationMin: 75, // full reading ~75 phút
+    durationMin: 75,
     questionsHint: "100 câu",
     level: "Advanced",
   },
 ];
 
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const me = await getUser();
+        console.log(me);
+        if (mounted) setUser(me);
+      } catch (e) {
+      } finally {
+        if (mounted) setLoadingUser(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-[radial-gradient(40%_60%_at_80%_10%,#fef9c3_0%,transparent_50%),radial-gradient(30%_40%_at_10%_20%,#bbf7d0_0%,transparent_45%),#F3F4F6]">
       {/* Header */}
@@ -84,9 +115,6 @@ export default function Home() {
           <h1 className="text-[22px] font-bold tracking-tight text-slate-900">
             Chọn bài test TOEIC
           </h1>
-          <span className="text-sm text-gray-500">
-            Langfens · TOEIC practice
-          </span>
         </div>
       </header>
 
@@ -295,7 +323,6 @@ function SkillIcon(skill: Skill) {
       </svg>
     );
   }
-  // reading
   return (
     <svg
       width="14"

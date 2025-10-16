@@ -34,8 +34,8 @@ export default function LangfensHeader() {
 
   const onGoogleLogin = () => {
     const base = process.env.NEXT_PUBLIC_API_BASE!;
-    console.log("API_BASE =", base); // kiểm tra trong console trình duyệt
-    window.location.href = `${base}/api/auth/google`; // => http://localhost:3001/auth/google
+    console.log("API_BASE =", base);
+    window.location.href = `${base}/api/auth/google`;
   };
 
   return (

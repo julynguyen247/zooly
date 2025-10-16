@@ -20,11 +20,11 @@ export class GatewayService {
   async googleLogin(profile: any) {
     const payload = {
       provider: 'google',
-      providerId: profile.id ?? profile._json?.sub,
-      email: profile.emails?.[0]?.value ?? null,
-      username: profile.displayName ?? null,
-      picture: profile.photos?.[0]?.value ?? null,
+      email: profile.email,
+      username: profile.firstName,
+      picture: profile.picture,
     };
+    console.log('HiHi');
     return await firstValueFrom(
       this.authClient.send('google.oauth.upsert', payload),
     );
