@@ -3,16 +3,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getUser } from "@/utils/api"; // hoặc đường dẫn nơi bạn export getUser
+import { getAllTests, getUser } from "@/utils/api";
 
 type Skill = "listening" | "reading";
 
 type TestItem = {
   id: string;
   title: string;
-  part: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-  skill: Skill;
-  durationMin: number;
+  part?: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  skill?: Skill;
+  durationMin?: number;
   questionsHint?: string;
   level?: "Beginner" | "Intermediate" | "Advanced";
 };
@@ -23,9 +23,9 @@ type User = {
   displayName?: string;
   first_name?: string;
   last_name?: string;
-  // bổ sung field khác nếu BE trả về
 };
 
+// Demo data (giữ nguyên)
 const listeningTests: TestItem[] = [
   {
     id: "L-P1-001",
@@ -86,25 +86,50 @@ const readingTests: TestItem[] = [
   },
 ];
 
+// Suy luận kỹ năng từ code/title (đơn giản, đủ xài)
+function inferSkillFrom(codeOrTitle: string): Skill {
+  const s = codeOrTitle.toLowerCase();
+  if (
+    s.includes("listening") ||
+    s.includes("lc") ||
+    s.includes("part 1") ||
+    s.includes("part 2") ||
+    s.includes("part 3") ||
+    s.includes("part 4")
+  ) {
+    return "listening";
+  }
+  // ETS-RC, Reading, Part 5-7
+  return "reading";
+}
+
 export default function Home() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loadingUser, setLoadingUser] = useState(true);
+  const [apiTests, setApiTests] = useState<TestItem[]>([]);
+  const [loadingApi, setLoadingApi] = useState(true);
+  const [errorApi, setErrorApi] = useState<string | null>(null);
 
   useEffect(() => {
-    let mounted = true;
     (async () => {
       try {
-        const me = await getUser();
-        console.log(me);
-        if (mounted) setUser(me);
-      } catch (e) {
+        const res = await getAllTests();
+        // Map BE → UI TestItem
+        const mapped: TestItem[] = res.data.map((t: any) => ({
+          id: t.id,
+          title: t.title || t.code,
+          durationMin: t.durationSeconds
+            ? Math.round(t.durationSeconds / 60)
+            : undefined,
+          skill: inferSkillFrom(`${t.code} ${t.title}`),
+        }));
+        setApiTests(mapped);
+      } catch (err: any) {
+        setErrorApi(
+          err?.message || "Không thể tải danh sách bài test từ server."
+        );
       } finally {
-        if (mounted) setLoadingUser(false);
+        setLoadingApi(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
   }, []);
 
   return (
@@ -120,6 +145,45 @@ export default function Home() {
 
       {/* Content */}
       <main className="mx-auto max-w-6xl px-4 py-8 space-y-12">
+        {/* Section từ API */}
+        <section>
+          <div className="mb-5">
+            <h2 className="text-xl font-semibold text-slate-900">
+              Đề từ server (API)
+            </h2>
+            <p className="text-sm text-slate-600 mt-1">
+              Dữ liệu lấy trực tiếp từ backend qua endpoint{" "}
+              <code className="px-1 py-0.5 bg-slate-100 rounded">
+                /api/tests
+              </code>
+              .
+            </p>
+          </div>
+
+          {loadingApi ? (
+            <div className="text-slate-600">Đang tải danh sách đề...</div>
+          ) : errorApi ? (
+            <div className="text-rose-600">{errorApi}</div>
+          ) : apiTests.length === 0 ? (
+            <div className="text-slate-600">Hiện chưa có bài test nào.</div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {apiTests.map((t) => (
+                <div
+                  key={t.id}
+                  className={`group relative rounded-2xl bg-gradient-to-br from-amber-50 to-white border border-slate-200/80 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md`}
+                >
+                  <div
+                    className={`pointer-events-none absolute inset-0 rounded-2xl ring-0 transition-all duration-300 group-hover:ring-amber-300/60`}
+                  />
+                  <TestCard test={t} />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Demo Sections (giữ nguyên) */}
         <Section
           title="Listening (Part 1–4)"
           description="Nghe mô tả ảnh, hỏi–đáp, hội thoại, bài nói. Hỗ trợ audio player + điều hướng câu hỏi."
@@ -133,12 +197,6 @@ export default function Home() {
           tests={readingTests}
         />
       </main>
-
-      <footer className="border-t bg-white/80 backdrop-blur">
-        <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-gray-500">
-          © {new Date().getFullYear()} Langfens. All rights reserved.
-        </div>
-      </footer>
     </div>
   );
 }
@@ -204,6 +262,12 @@ function TestCard({ test }: { test: TestItem }) {
       ? "bg-white text-rose-700 border border-rose-200"
       : "bg-white text-slate-700 border border-slate-200";
 
+  // Fallback hiển thị
+  const durationLabel =
+    typeof test.durationMin === "number" ? `${test.durationMin} phút` : "—";
+  const skillLabel = test.skill ? capitalize(test.skill) : "Practice";
+  const partLabel = test.part ? `Part ${test.part}` : undefined;
+
   return (
     <div className="relative p-5">
       {/* Meta row */}
@@ -237,7 +301,7 @@ function TestCard({ test }: { test: TestItem }) {
             <circle cx="12" cy="12" r="9" strokeWidth="1.8" />
             <path d="M12 7v5l3 2" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
-          {test.durationMin} phút
+          {durationLabel}
         </span>
       </div>
 
@@ -248,25 +312,27 @@ function TestCard({ test }: { test: TestItem }) {
 
       {/* Part & questions */}
       <div className="mt-2 text-xs text-slate-500 flex items-center gap-2">
-        <Badge
-          icon={
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-            >
-              <path d="M4 12h16" strokeWidth="1.6" strokeLinecap="round" />
-              <path d="M12 4v16" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-          }
-          label={`Part ${test.part}`}
-        />
+        {partLabel && (
+          <Badge
+            icon={
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path d="M4 12h16" strokeWidth="1.6" strokeLinecap="round" />
+                <path d="M12 4v16" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            }
+            label={partLabel}
+          />
+        )}
         {test.questionsHint && (
           <Badge icon={QuestionIcon()} label={test.questionsHint} />
         )}
-        <Badge icon={SkillIcon(test.skill)} label={capitalize(test.skill)} />
+        <Badge icon={SkillIcon(test.skill ?? "reading")} label={skillLabel} />
       </div>
 
       {/* Divider */}
@@ -277,7 +343,7 @@ function TestCard({ test }: { test: TestItem }) {
         <span className="text-[11px] text-slate-500">ID {test.id}</span>
 
         <Link
-          href={`/do-test/${test.skill}/${attemptId}`}
+          href={`/do-test/${test.skill ?? "reading"}/${attemptId}`}
           className="inline-flex items-center gap-2 rounded-xl bg-yellow-400 px-3 py-2 text-[13.5px] font-semibold text-slate-900 shadow-sm transition-[transform,filter] hover:brightness-95 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-yellow-300"
           aria-label={`Bắt đầu ${test.title}`}
         >

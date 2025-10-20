@@ -38,6 +38,12 @@ export class GatewayService {
       this.testClient.send('testsets.getById', { id }),
     );
   }
+  async getAllTests() {
+    const payload = {};
+    return await firstValueFrom(
+      this.testClient.send('testsets.getAll', payload),
+    );
+  }
   async startAttempts(
     userId: string,
     testSetId: string,

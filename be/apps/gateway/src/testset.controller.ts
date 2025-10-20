@@ -12,6 +12,12 @@ export class TestsetController {
     return this.gw.importTest(json);
   }
 
+  @Public()
+  @Get('all')
+  getAll() {
+    return this.gw.getAllTests();
+  }
+
   @Get(':id')
   getById(@Param('id') id: string) {
     return this.gw.getTestById(id);

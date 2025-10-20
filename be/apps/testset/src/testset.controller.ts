@@ -14,7 +14,7 @@ export class TestsetController {
   getById(@Payload() data: { id: string }) {
     return this.testsetService.getTestById(data.id);
   }
-  @MessagePattern('testset.checkAnswer')
+  @MessagePattern('testsets.checkAnswer')
   checkAnswer(
     @Payload()
     data: {
@@ -24,5 +24,10 @@ export class TestsetController {
     },
   ) {
     return this.testsetService.checkUserAnswer(data);
+  }
+
+  @MessagePattern('testsets.getAll')
+  getAll() {
+    return this.testsetService.getAllTests();
   }
 }

@@ -10,6 +10,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { TestsetController } from './testset.controller';
 import { AttemptsController } from './attempts.controller';
 import { GoogleStrategy } from '../passport/google.strategy';
+import { CoursesController } from './courses.controller';
 
 @Module({
   imports: [
@@ -68,8 +69,30 @@ import { GoogleStrategy } from '../passport/google.strategy';
         }),
       },
     ]),
+    ClientsModule.registerAsync([
+      {
+        name: 'COURSES_CLIENT',
+        useFactory: () => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [
+              process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672',
+            ],
+            queue: process.env.COURSES_QUEUE || 'courses_queue',
+            queueOptions: {
+              durable: false,
+            },
+          },
+        }),
+      },
+    ]),
   ],
-  controllers: [GatewayController, TestsetController, AttemptsController],
+  controllers: [
+    GatewayController,
+    TestsetController,
+    AttemptsController,
+    CoursesController,
+  ],
   providers: [
     GatewayService,
     JwtStrategy,

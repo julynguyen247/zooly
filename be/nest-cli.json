@@ -10,6 +10,15 @@
   "monorepo": true,
   "root": "apps/auth",
   "projects": {
+    "analytic": {
+      "type": "application",
+      "root": "apps/analytic",
+      "entryFile": "main",
+      "sourceRoot": "apps/analytic/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/analytic/tsconfig.app.json"
+      }
+    },
     "attempts": {
       "type": "application",
       "root": "apps/attempts",
@@ -26,6 +35,15 @@
       "sourceRoot": "apps/auth/src",
       "compilerOptions": {
         "tsConfigPath": "apps/auth/tsconfig.app.json"
+      }
+    },
+    "courses": {
+      "type": "application",
+      "root": "apps/courses",
+      "entryFile": "main",
+      "sourceRoot": "apps/courses/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/courses/tsconfig.app.json"
       }
     },
     "gateway": {

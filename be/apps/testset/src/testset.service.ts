@@ -124,4 +124,12 @@ export class TestsetService {
     const part = this.partFromPartNo(question.partNo);
     return { correct, part };
   }
+  async getAllTests() {
+    const tests = await this.testsets.find({
+      select: ['id', 'code', 'title', 'durationSeconds'],
+      order: { title: 'ASC' },
+    });
+
+    return tests;
+  }
 }

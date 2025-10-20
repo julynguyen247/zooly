@@ -1,42 +1,40 @@
-"use client";
-
+import { useUserStore } from "@/app/store/user";
+import { getUser } from "@/utils/api";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef, useState } from "react";
-import Modal from "@/components/Modal";
-
-type NavItem = {
-  label: string;
-  href: string;
-  children?: { label: string; href: string }[];
-};
-
-const NAV: NavItem[] = [
-  { label: "Trang chủ", href: "/" },
-  {
-    label: "Khóa học",
-    href: "/khoa-hoc",
-    children: [
-      { label: "Writing IELTS 7.0+", href: "/khoa-hoc/writing-ielts-7" },
-      { label: "Reading Mastery", href: "/khoa-hoc/reading" },
-    ],
-  },
-  { label: "Luyện đề", href: "/luyen-de", children: [] },
-  { label: "Từ điển", href: "/tu-dien", children: [] },
-  { label: "Từ vựng", href: "/tu-vung", children: [] },
-];
+import { useEffect, useRef, useState } from "react";
+import Modal from "./Modal";
 
 export default function LangfensHeader() {
   const pathname = usePathname();
-  const [hovered, setHovered] = useState<NavItem | null>(null);
+  const [hovered, setHovered] = useState(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const googleBtnRef = useRef<HTMLButtonElement>(null);
 
+  const user = useUserStore((s) => s.user);
+  const setUser = useUserStore((s) => s.setUser);
+
   const onGoogleLogin = () => {
     const base = process.env.NEXT_PUBLIC_API_BASE!;
-    console.log("API_BASE =", base);
     window.location.href = `${base}/api/auth/google`;
   };
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const me = await getUser();
+        if (mounted) setUser(me?.data);
+      } catch (e) {}
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [setUser]);
+
+  useEffect(() => {
+    if (user) setLoginOpen(false);
+  }, [user]);
 
   return (
     <header className="w-full bg-white font-nunito">
@@ -49,67 +47,44 @@ export default function LangfensHeader() {
             LANGFENS – Master Reading, Master IELTS
           </Link>
 
-          <button
-            aria-label="Account"
-            className="inline-flex size-8 items-center justify-center rounded-full border border-slate-300"
-            onClick={() => setLoginOpen(true)}
-          >
-            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-black">
-              <path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 2.686-8 6v2h16v-2c0-3.314-3.582-6-8-6z" />
-            </svg>
-          </button>
-        </div>
-      </div>
+          {user ? (
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline text-sm text-slate-700 max-w-[220px] truncate">
+                {user.email ?? "User"}
+              </span>
 
-      <div className="w-full" onMouseLeave={() => setHovered(null)}>
-        <nav className="w-full bg-[#3B82F6]">
-          <div className="mx-auto max-w-7xl px-3 h-10 flex items-center gap-4">
-            {NAV.map((item) => {
-              const isActive =
-                item.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(item.href);
-
-              return (
-                <div
-                  key={item.href}
-                  className="relative"
-                  onMouseEnter={() => setHovered(item)}
-                >
-                  <Link
-                    href={item.href}
-                    className={`inline-flex items-center justify-center px-4 py-[6px] text-sm sm:text-[15px] font-semibold transition-all rounded-full
-                    ${
-                      isActive
-                        ? "bg-white text-[#2563EB] shadow-sm"
-                        : "text-white/95 hover:bg-white/15 hover:text-white"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        </nav>
-
-        {hovered && hovered.children && hovered.children.length > 0 && (
-          <div className="w-full bg-white border-t">
-            <div className="mx-auto max-w-7xl px-4 py-3">
-              <div className="flex gap-6">
-                {hovered.children.map((c) => (
-                  <Link
-                    key={c.href}
-                    href={c.href}
-                    className="text-sm text-slate-700 hover:text-[#2563EB]"
-                  >
-                    {c.label}
-                  </Link>
-                ))}
-              </div>
+              {/* <Link
+                href="/account"
+                aria-label="Account"
+                className="inline-flex size-8 items-center justify-center rounded-full border border-slate-300 overflow-hidden"
+              >
+                {user.picture ? (
+                  // có ảnh avatar từ backend (ví dụ Google)
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.picture}
+                    alt="avatar"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <svg viewBox="0 0 24 24" className="w-4 h-4 fill-black">
+                    <path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 2.686-8 6v2h16v-2c0-3.314-3.582-6-8-6z" />
+                  </svg>
+                )}
+              </Link> */}
             </div>
-          </div>
-        )}
+          ) : (
+            <button
+              aria-label="Account"
+              className="inline-flex size-8 items-center justify-center rounded-full border border-slate-300"
+              onClick={() => setLoginOpen(true)}
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-black">
+                <path d="M12 12c2.761 0 5-2.686 5-6s-2.239-6-5-6-5 2.686-5 6 2.239 6 5 6zm0 2c-4.418 0-8 2.686-8 6v2h16v-2c0-3.314-3.582-6-8-6z" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       <Modal
@@ -122,7 +97,7 @@ export default function LangfensHeader() {
           <button
             ref={googleBtnRef}
             onClick={onGoogleLogin}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-lgx-4 py-2 text-slate-800 hover:bg-slate-50 border rounded-2xl"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-slate-800 hover:bg-slate-50 border rounded-2xl"
           >
             <svg viewBox="0 0 533.5 544.3" className="w-5 h-5" aria-hidden>
               <path

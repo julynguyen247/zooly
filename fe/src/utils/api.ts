@@ -15,13 +15,24 @@ export async function getUser() {
     const response = await api.get("/api/auth/user", {
       withCredentials: true,
     });
-    return response.data;
+    return response;
   } catch (error: any) {
     if (error.response?.status === 401) {
       return null;
     }
     throw new Error(
       error.response?.data?.message || "Không thể lấy thông tin người dùng."
+    );
+  }
+}
+
+export async function getAllTests() {
+  try {
+    const response = await api.get("/api/testsets/all");
+    return response;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Không thể lấy danh sách bài test."
     );
   }
 }
