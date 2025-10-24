@@ -8,6 +8,7 @@ import {
   ParseBoolPipe,
 } from '@nestjs/common';
 import { GatewayService } from './gateway.service';
+import { Public } from './decorators/public.decorator';
 
 type Part = 'listening' | 'reading';
 
@@ -15,6 +16,7 @@ type Part = 'listening' | 'reading';
 export class AttemptsController {
   constructor(private readonly gw: GatewayService) {}
 
+  @Public()
   @Post('start')
   async start(
     @Body()
@@ -31,6 +33,7 @@ export class AttemptsController {
     );
   }
 
+  @Public()
   @Get(':id')
   getById(
     @Param('id') id: string,

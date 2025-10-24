@@ -18,6 +18,7 @@ export class TestsetController {
     return this.gw.getAllTests();
   }
 
+  @Public()
   @Get(':id')
   getById(@Param('id') id: string) {
     return this.gw.getTestById(id);

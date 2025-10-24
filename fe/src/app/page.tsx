@@ -1,14 +1,15 @@
 // src/app/page.tsx
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getAllTests, getUser } from "@/utils/api";
+import { useRouter } from "next/navigation";
+import { getAllTests, startAttempt } from "@/utils/api";
+import { useUserStore } from "./store/user";
 
 type Skill = "listening" | "reading";
 
 type TestItem = {
-  id: string;
+  id: string; // đây là testId
   title: string;
   part?: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   skill?: Skill;
@@ -25,7 +26,6 @@ type User = {
   last_name?: string;
 };
 
-// Demo data (giữ nguyên)
 const listeningTests: TestItem[] = [
   {
     id: "L-P1-001",
@@ -85,8 +85,6 @@ const readingTests: TestItem[] = [
     level: "Advanced",
   },
 ];
-
-// Suy luận kỹ năng từ code/title (đơn giản, đủ xài)
 function inferSkillFrom(codeOrTitle: string): Skill {
   const s = codeOrTitle.toLowerCase();
   if (
@@ -112,14 +110,13 @@ export default function Home() {
     (async () => {
       try {
         const res = await getAllTests();
-        // Map BE → UI TestItem
         const mapped: TestItem[] = res.data.map((t: any) => ({
           id: t.id,
           title: t.title || t.code,
           durationMin: t.durationSeconds
             ? Math.round(t.durationSeconds / 60)
             : undefined,
-          skill: inferSkillFrom(`${t.code} ${t.title}`),
+          skill: inferSkillFrom(`${t.code ?? ""} ${t.title ?? ""}`),
         }));
         setApiTests(mapped);
       } catch (err: any) {
@@ -251,8 +248,6 @@ function Section({
 }
 
 function TestCard({ test }: { test: TestItem }) {
-  const attemptId = test.id;
-
   const levelStyle =
     test.level === "Beginner"
       ? "bg-white text-slate-700 border border-slate-200"
@@ -305,12 +300,10 @@ function TestCard({ test }: { test: TestItem }) {
         </span>
       </div>
 
-      {/* Title */}
       <h3 className="mt-3 text-[15.5px] font-semibold leading-snug text-slate-900">
         {test.title}
       </h3>
 
-      {/* Part & questions */}
       <div className="mt-2 text-xs text-slate-500 flex items-center gap-2">
         {partLabel && (
           <Badge
@@ -335,31 +328,61 @@ function TestCard({ test }: { test: TestItem }) {
         <Badge icon={SkillIcon(test.skill ?? "reading")} label={skillLabel} />
       </div>
 
-      {/* Divider */}
       <div className="mt-4 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-
-      {/* Actions */}
       <div className="mt-4 flex items-center justify-between">
-        <span className="text-[11px] text-slate-500">ID {test.id}</span>
-
-        <Link
-          href={`/do-test/${test.skill ?? "reading"}/${attemptId}`}
-          className="inline-flex items-center gap-2 rounded-xl bg-yellow-400 px-3 py-2 text-[13.5px] font-semibold text-slate-900 shadow-sm transition-[transform,filter] hover:brightness-95 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-yellow-300"
-          aria-label={`Bắt đầu ${test.title}`}
-        >
-          Bắt đầu
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path d="M5 12h14" strokeWidth="2" strokeLinecap="round" />
-            <path d="M13 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </Link>
+        <span className="text-[11px] text-slate-500">Test ID {test.id}</span>
+        <StartButton testId={test.id} title={test.title} />
       </div>
     </div>
+  );
+}
+
+function StartButton({ testId, title }: { testId: string; title: string }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const { user } = useUserStore();
+
+  const onStart = async () => {
+    if (!user) {
+      alert("Bạn cần đăng nhập trước khi làm bài nhé!");
+      router.push("/login");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await startAttempt(user.userId, testId);
+      const attemptId = res?.data?.id;
+      const testSetId = res.data.testSetId;
+      if (testSetId) localStorage.setItem("currentTestSetId", testSetId);
+      if (!attemptId) throw new Error("BE không trả về attemptId.");
+      router.push(`/do-test/${attemptId}`);
+    } catch (e: any) {
+      alert(e?.message || "Không tạo được attempt. Thử lại nhé!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={onStart}
+      disabled={loading}
+      className="inline-flex items-center gap-2 rounded-xl bg-yellow-400 px-3 py-2 text-[13.5px] font-semibold text-slate-900 shadow-sm transition-[transform,filter] hover:brightness-95 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:opacity-60"
+      aria-label={`Bắt đầu ${title}`}
+    >
+      {loading ? "Đang tạo..." : "Bắt đầu"}
+      <svg
+        className="h-4 w-4"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+      >
+        <path d="M5 12h14" strokeWidth="2" strokeLinecap="round" />
+        <path d="M13 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    </button>
   );
 }
 

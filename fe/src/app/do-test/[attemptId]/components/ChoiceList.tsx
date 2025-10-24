@@ -14,7 +14,7 @@ export default function ChoiceList({
   name?: string;
 }) {
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-3 text-black">
       {choices.map((c) => (
         <label
           key={c.label}

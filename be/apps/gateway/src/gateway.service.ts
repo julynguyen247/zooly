@@ -54,25 +54,33 @@ export class GatewayService {
       testSetId,
       allowDuplicateOngoing,
     };
-    return firstValueFrom(this.attemptsClient.send('attempts.start', payload));
+    console.log('send message');
+
+    return await firstValueFrom(
+      this.attemptsClient.send('attempts.start', payload),
+    );
   }
   async getAttempt(attemptId: string, withAnswers = false) {
     const payload: GetAttemptDto = { attemptId, withAnswers };
-    return firstValueFrom(this.attemptsClient.send('attempts.get', payload));
+    return await firstValueFrom(
+      this.attemptsClient.send('attempts.get', payload),
+    );
   }
   async listAttemptsByUser(userId: string, testSetId?: string) {
     const payload: ListAttemptsByUserDto = { userId, testSetId };
-    return firstValueFrom(
+    return await firstValueFrom(
       this.attemptsClient.send('attempts.listByUser', payload),
     );
   }
   async upsertAnswer(payload: UpsertAnswerDto) {
-    return firstValueFrom(
+    return await firstValueFrom(
       this.attemptsClient.send('attempts.upsertAnswer', payload),
     );
   }
   async submitAttempt(attemptId: string) {
     const payload: SubmitAttemptDto = { attemptId };
-    return firstValueFrom(this.attemptsClient.send('attempts.submit', payload));
+    return await firstValueFrom(
+      this.attemptsClient.send('attempts.submit', payload),
+    );
   }
 }

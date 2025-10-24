@@ -1,17 +1,27 @@
 "use client";
-import { PARTS } from "@/utils/type";
+import { READING_PARTS, LISTENING_PARTS } from "@/utils/type";
 import { ChevronDown } from "lucide-react";
 
 export default function PartTabs({
   currentPart,
   onChange,
+  reading,
+  listening,
 }: {
+  reading?: boolean;
+  listening?: boolean;
   currentPart: number;
   onChange: (p: number) => void;
 }) {
+  const parts = reading
+    ? READING_PARTS
+    : listening
+    ? LISTENING_PARTS
+    : [...LISTENING_PARTS, ...READING_PARTS];
+
   return (
-    <div className="w-full flex gap-4 ">
-      {PARTS.map((p) => (
+    <div className="w-full flex flex-wrap gap-4">
+      {parts.map((p) => (
         <button
           key={p.key}
           onClick={() => onChange(p.key)}

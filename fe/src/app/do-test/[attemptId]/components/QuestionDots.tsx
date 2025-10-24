@@ -9,7 +9,7 @@ export default function QuestionDots({
 }) {
   return (
     <div className="w-full mt-4 flex flex-wrap gap-2">
-      {totalNumbers.slice(0, 12).map((n) => (
+      {totalNumbers.map((n) => (
         <button
           key={n}
           className="h-9 w-9 rounded-full border bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100"

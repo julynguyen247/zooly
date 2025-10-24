@@ -14,6 +14,7 @@ export class AttemptsController {
   constructor(private readonly attemptsService: AttemptsService) {}
 
   @MessagePattern('attempts.start') start(@Payload() dto: StartAttemptDto) {
+    console.log('return message');
     return this.attemptsService.startAttempt(dto);
   }
   @MessagePattern('attempts.get') get(@Payload() dto: GetAttemptDto) {

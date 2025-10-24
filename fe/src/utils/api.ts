@@ -20,9 +20,6 @@ export async function getUser() {
     if (error.response?.status === 401) {
       return null;
     }
-    throw new Error(
-      error.response?.data?.message || "Không thể lấy thông tin người dùng."
-    );
   }
 }
 
@@ -34,5 +31,85 @@ export async function getAllTests() {
     throw new Error(
       error.response?.data?.message || "Không thể lấy danh sách bài test."
     );
+  }
+}
+export async function getTestById(id: string) {
+  const response = await api.get(`/api/testsets/${id}`);
+  return response;
+}
+
+export async function startAttempt(
+  userId: string,
+  testSetId: string,
+  allowDuplicateOngoing?: boolean
+) {
+  try {
+    const res = await api.post("/api/attempts/start", {
+      userId,
+      testSetId,
+      allowDuplicateOngoing: !!allowDuplicateOngoing,
+    });
+    return res;
+  } catch (error: any) {
+    const msg =
+      error?.response?.data?.message ||
+      "Không thể bắt đầu attempt. Thử lại nhé!";
+    throw new Error(msg);
+  }
+}
+
+export async function submitAttempt(attemptId: string) {
+  try {
+    const res = await api.post(`/api/attempts/${attemptId}/submit`);
+    return res;
+  } catch (error: any) {
+    const msg =
+      error?.response?.data?.message || "Không thể nộp bài. Thử lại nhé!";
+    throw new Error(msg);
+  }
+}
+
+export async function upsertAnswer(
+  attemptId: string,
+  payload: {
+    questionId: string;
+    choiceId?: string | null;
+    userAnswer?: string | null;
+    part?: "listening" | "reading";
+  }
+) {
+  try {
+    const res = await api.post(`/api/attempts/${attemptId}/answers`, payload);
+    return res;
+  } catch (error: any) {
+    const msg =
+      error?.response?.data?.message ||
+      "Không thể lưu câu trả lời. Thử lại nhé!";
+    throw new Error(msg);
+  }
+}
+export async function getAttemptById(attemptId: string, withAnswers = false) {
+  try {
+    const res = await api.get(`/api/attempts/${attemptId}`, {
+      params: { withAnswers },
+    });
+    return res;
+  } catch (error: any) {
+    const msg = error?.response?.data?.message || "Không thể tải attempt.";
+    throw new Error(msg);
+  }
+}
+
+export async function listAttemptsByUser(userId: string, testSetId?: string) {
+  try {
+    const res = await api.get(`/api/attempts/user/${userId}`, {
+      params: { testSetId },
+    });
+    return res;
+  } catch (error: any) {
+    const msg =
+      error?.response?.data?.message ||
+      "Không thể tải danh sách bài làm của bạn.";
+    throw new Error(msg);
   }
 }

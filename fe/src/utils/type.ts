@@ -8,13 +8,17 @@ export type Question = {
   choices: Choice[];
 };
 
-export const PARTS: { key: number; title: string; total: number }[] = [
-  { key: 1, title: "Part 1", total: 6 },
-  { key: 2, title: "Part 2", total: 25 },
-  { key: 3, title: "Part 3", total: 39 },
-  { key: 4, title: "Part 4", total: 30 },
+export const LISTENING_PARTS: { key: number; title: string; total: number }[] =
+  [
+    { key: 1, title: "Part 1", total: 6 },
+    { key: 2, title: "Part 2", total: 25 },
+    { key: 3, title: "Part 3", total: 39 },
+    { key: 4, title: "Part 4", total: 30 },
+  ];
+
+export const READING_PARTS: { key: number; title: string; total: number }[] = [
   { key: 5, title: "Part 5", total: 30 },
-  { key: 6, title: 16, total: 16 } as any, // giữ đúng tổng Part 6
+  { key: 6, title: 16, total: 16 } as any,
   { key: 7, title: "Part 7", total: 54 },
 ];
 

@@ -58,9 +58,7 @@ import { CoursesController } from './courses.controller';
         useFactory: () => ({
           transport: Transport.RMQ,
           options: {
-            urls: [
-              process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672',
-            ],
+            urls: [process.env.RABBITMQ_URL ?? ''],
             queue: process.env.ATTEMPTS_QUEUE || 'attempts_queue',
             queueOptions: {
               durable: false,
