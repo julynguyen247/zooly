@@ -7,8 +7,9 @@ export class TestsetController {
   constructor(private readonly testsetService: TestsetService) {}
 
   @MessagePattern('testsets.import')
-  importTest(@Payload() json: any) {
-    return this.testsetService.importTestJson(json);
+  async handleImport(@Payload() data: any) {
+    const { json, fileMap } = data;
+    return this.testsetService.importTestJson(json, fileMap);
   }
   @MessagePattern('testsets.getById')
   getById(@Payload() data: { id: string }) {

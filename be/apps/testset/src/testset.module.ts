@@ -7,6 +7,7 @@ import { TestSet } from './entities/testset.entity';
 import { Passage } from './entities/passage.entity';
 import { Question } from './entities/question.entity';
 import { Choice } from './entities/choice.entity';
+import { SupabaseService } from '../../gateway/supabase/supabase.service';
 
 @Module({
   imports: [
@@ -26,6 +27,6 @@ import { Choice } from './entities/choice.entity';
     TypeOrmModule.forFeature([TestSet, Passage, Question, Choice]),
   ],
   controllers: [TestsetController],
-  providers: [TestsetService],
+  providers: [TestsetService, SupabaseService],
 })
 export class TestsetModule {}

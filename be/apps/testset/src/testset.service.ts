@@ -6,6 +6,7 @@ import { TestSet } from './entities/testset.entity';
 import { Passage } from './entities/passage.entity';
 import { Question } from './entities/question.entity';
 import { Choice } from './entities/choice.entity';
+import { SupabaseService } from '../../gateway/supabase/supabase.service';
 
 @Injectable()
 export class TestsetService {
@@ -15,10 +16,11 @@ export class TestsetService {
     @InjectRepository(Question) private questions: Repository<Question>,
     @InjectRepository(Choice) private choices: Repository<Choice>,
   ) {}
+
   private partFromPartNo(partNo: number) {
     return partNo >= 1 && partNo <= 4 ? 'listening' : 'reading';
   }
-  async importTestJson(json: any) {
+  async importTestJson(json: any, fileMap: any) {
     const testSet = await this.testsets.save(
       this.testsets.create({
         code: json.code,
@@ -35,8 +37,8 @@ export class TestsetService {
             partNo,
             number: item.number,
             stem: item.stem,
-            imageKey: item.imageKey,
-            audioKey: item.audioKey,
+            imageKey: fileMap.image,
+            audioKey: fileMap.audio,
             correct: item.correct,
             explanation: item.explanation,
             choices: (item.choices || []).map((c) => this.choices.create(c)),

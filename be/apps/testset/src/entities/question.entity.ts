@@ -22,10 +22,10 @@ export class Question {
   number: number;
   @Column({ type: 'text', nullable: true })
   stem?: string;
-  @Column({ nullable: true })
-  imageKey?: string;
-  @Column({ nullable: true })
-  audioKey?: string;
+  @Column({ type: 'text', nullable: true })
+  imageKey?: string | null;
+  @Column({ type: 'text', nullable: true })
+  audioKey?: string | null;
   @Column({ length: 1 })
   correct: 'A' | 'B' | 'C' | 'D';
   @Column({ type: 'text', nullable: true })

@@ -8,6 +8,7 @@ import {
   UpsertAnswerDto,
 } from 'apps/attempts/src/dto/attempts.dto';
 import { firstValueFrom } from 'rxjs';
+import { SupabaseService } from '../supabase/supabase.service';
 
 @Injectable()
 export class GatewayService {
@@ -15,6 +16,7 @@ export class GatewayService {
     @Inject('AUTH_CLIENT') private readonly authClient: ClientProxy,
     @Inject('TEST_CLIENT') private readonly testClient: ClientProxy,
     @Inject('ATTEMPTS_CLIENT') private readonly attemptsClient: ClientProxy,
+    private readonly supabase: SupabaseService,
   ) {}
 
   async googleLogin(profile: any) {
@@ -30,8 +32,32 @@ export class GatewayService {
     );
   }
 
-  async importTest(json: any) {
-    return await firstValueFrom(this.testClient.send('testsets.import', json));
+  private async uploadAllFiles(files?: Express.Multer.File[]) {
+    const map: { image: string | null; audio: string | null } = {
+      image: null,
+      audio: null,
+    };
+    for (const f of files || []) {
+      if (f.mimetype.startsWith('image/')) {
+        const { url } = await this.supabase.uploadImage(f);
+        map.image = url;
+      } else if (f.mimetype.startsWith('audio/')) {
+        const { url } = await this.supabase.uploadAudio(f);
+        map.audio = url;
+      } else {
+        continue;
+      }
+    }
+    return map;
+  }
+
+  async importTest(json: any, files?: Express.Multer.File[]) {
+    const fileMap = await this.uploadAllFiles(files);
+    const payload: any = { json, fileMap };
+
+    return await firstValueFrom(
+      this.testClient.send('testsets.import', payload),
+    );
   }
   async getTestById(id: string) {
     return await firstValueFrom(

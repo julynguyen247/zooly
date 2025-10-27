@@ -11,6 +11,7 @@ import { TestsetController } from './testset.controller';
 import { AttemptsController } from './attempts.controller';
 import { GoogleStrategy } from '../passport/google.strategy';
 import { CoursesController } from './courses.controller';
+import { SupabaseService } from '../supabase/supabase.service';
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import { CoursesController } from './courses.controller';
       useClass: JwtAuthGuard,
     },
     GoogleStrategy,
+    SupabaseService,
   ],
   exports: [PassportModule, JwtStrategy],
 })

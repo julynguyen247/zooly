@@ -1,6 +1,16 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
 import { GatewayService } from './gateway.service';
 import { Public } from './decorators/public.decorator';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @Controller('testsets')
 export class TestsetController {
@@ -8,8 +18,24 @@ export class TestsetController {
 
   @Public()
   @Post('import')
-  import(@Body() json: any) {
-    return this.gw.importTest(json);
+  @UseInterceptors(
+    FilesInterceptor('files', 50, {
+      storage: memoryStorage(),
+    }),
+  )
+  async import(
+    @Body('payload') payload: string,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    console.log(
+      files.map((f) => ({
+        name: f.originalname,
+        len: f.buffer?.length,
+        mime: f.mimetype,
+      })),
+    );
+    const json = JSON.parse(payload);
+    return this.gw.importTest(json, files);
   }
 
   @Public()
