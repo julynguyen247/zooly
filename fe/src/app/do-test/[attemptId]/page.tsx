@@ -1,6 +1,11 @@
 "use client";
 
-import { MOCK_Q, READING_PARTS } from "@/utils/type";
+import {
+  MOCK_Q,
+  READING_PARTS,
+  LISTENING_PARTS,
+  FULL_TEST,
+} from "@/utils/type";
 import { Flag } from "lucide-react";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import TimerPill from "./components/TimerPill";
@@ -28,6 +33,8 @@ export default function ToeicExamPlayerPage() {
   const [answers, setAnswer] = useState<any>({});
   const [flags, setFlags] = useState<any>({});
   const [started, setStarted] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [check, setCheck] = useState("");
 
   useEffect(() => {
     const fetchTest = async () => {
@@ -36,6 +43,13 @@ export default function ToeicExamPlayerPage() {
         const testSetId = localStorage.getItem("currentTestSetId");
         if (!testSetId) throw new Error("Không tìm thấy testSetId!");
         const res = await getTestById(testSetId);
+        if (res.data.durationSeconds === 2700) {
+          setCheck("listening");
+        } else if (res.data.durationSeconds === 4500) {
+          setCheck("reading");
+        } else {
+          setCheck("full");
+        }
         setTest(res.data);
       } catch (err: any) {
         console.error("Lỗi khi lấy đề:", err);
@@ -76,11 +90,6 @@ export default function ToeicExamPlayerPage() {
       return () => window.removeEventListener("keydown", onKey);
     }
   }, [started]);
-
-  const questionsInPart = useMemo(() => {
-    const total = READING_PARTS.find((p) => p.key === currentPart)?.total || 6;
-    return Array.from({ length: total }, (_, i) => i + 1);
-  }, [currentPart]);
 
   const byPart = useMemo(() => {
     if (!test?.questions) return {};
@@ -153,11 +162,30 @@ export default function ToeicExamPlayerPage() {
     }
   }, [answers, attemptId, test, router]);
 
+  const totalNumbers = useMemo(() => {
+    let total = 6;
+
+    if (check === "reading") {
+      total = READING_PARTS.find((p) => p.key === currentPart)?.total ?? 6;
+    } else if (check === "listening") {
+      total = LISTENING_PARTS.find((p) => p.key === currentPart)?.total ?? 6;
+    } else {
+      total = FULL_TEST.find((p) => p.key === currentPart)?.total ?? 6;
+    }
+
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }, [check, currentPart]);
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-pink-50 to-white flex flex-col">
       <div className="sticky top-0 z-30 w-full">
         {started && duration ? (
-          <TimerPill duration={duration} onSubmit={handleSubmitFromPage} />
+          <TimerPill
+            duration={duration}
+            onSubmit={handleSubmitFromPage}
+            onPause={() => setPaused(true)}
+            onResume={() => setPaused(false)}
+          />
         ) : null}
       </div>
 
@@ -183,16 +211,23 @@ export default function ToeicExamPlayerPage() {
             <h2 className="text-lg font-semibold mb-4 w-full text-black">
               {currentQuestion ? `Câu ${currentQuestion.number}.` : "—"}
             </h2>
+            <h3 className="text-lg font-semibold w-full text-black mt-3">
+              {currentQuestion?.stem ?? ""}
+            </h3>
 
             <div className="flex items-start md:items-center justify-center gap-8 w-full mt-6 md:mt-10 flex-col md:flex-row">
               <div className="w-full">
+                {currentQuestion?.partNo <= 4 && currentQuestion.audioKey && (
+                  <div className="mb-4">
+                    <MiniAudioPlayer
+                      src={currentQuestion.audioKey}
+                      paused={paused}
+                    />
+                  </div>
+                )}
                 {currentQuestion?.imageKey && (
                   <ImageViewer src={currentQuestion.imageKey} />
                 )}
-
-                <h3 className="text-lg font-semibold w-full text-black mt-3">
-                  {currentQuestion?.stem ?? ""}
-                </h3>
               </div>
 
               <div className="w-full">
@@ -220,10 +255,9 @@ export default function ToeicExamPlayerPage() {
               <PartTabs
                 currentPart={currentPart}
                 onChange={(p) => setCurrentPart(p)}
-                reading={true}
               />
               <QuestionDots
-                totalNumbers={questionsInPart}
+                totalNumbers={totalNumbers}
                 onSelect={(n) => handleSelectDot(n)}
               />
             </>

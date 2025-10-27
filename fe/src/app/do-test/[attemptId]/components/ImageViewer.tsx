@@ -41,14 +41,14 @@ export default function ImageViewer({
           className="origin-top-left"
           style={{ transform: `scale(${scale})` }}
         >
-          {/* <Image
+          <Image
             src={src}
             alt={alt}
             width={1200}
             height={720}
             className="w-full h-72 object-cover"
             priority
-          /> */}
+          />
         </div>
       </div>
       <div className="mt-2 flex items-center gap-4 text-slate-500">

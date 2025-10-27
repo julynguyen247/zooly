@@ -18,10 +18,19 @@ export const LISTENING_PARTS: { key: number; title: string; total: number }[] =
 
 export const READING_PARTS: { key: number; title: string; total: number }[] = [
   { key: 5, title: "Part 5", total: 30 },
-  { key: 6, title: 16, total: 16 } as any,
+  { key: 6, title: "Part 6", total: 16 },
   { key: 7, title: "Part 7", total: 54 },
 ];
 
+export const FULL_TEST: { key: number; title: string; total: number }[] = [
+  { key: 1, title: "Part 1", total: 6 },
+  { key: 2, title: "Part 2", total: 25 },
+  { key: 3, title: "Part 3", total: 39 },
+  { key: 4, title: "Part 4", total: 30 },
+  { key: 5, title: "Part 5", total: 30 },
+  { key: 6, title: "Part 6", total: 16 },
+  { key: 7, title: "Part 7", total: 54 },
+];
 export const MOCK_Q: Question = {
   id: 4,
   image:
