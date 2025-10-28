@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Answer } from './entities/answer.entity';
 import { Attempt } from './entities/attempt.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -38,6 +39,17 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
             },
           },
         }),
+      },
+    ]),
+    ClientsModule.register([
+      {
+        name: 'TESTSET_PACKAGE',
+        transport: Transport.GRPC,
+        options: {
+          package: 'testset',
+          protoPath: join(process.cwd(), 'proto', 'testset.proto'),
+          url: process.env.TESTSET_SVC_URL || 'testset-svc:50052',
+        },
       },
     ]),
   ],

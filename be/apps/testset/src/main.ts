@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { TestsetModule } from './testset.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+  const rmq = await NestFactory.createMicroservice<MicroserviceOptions>(
     TestsetModule,
     {
       transport: Transport.RMQ,
@@ -16,6 +17,17 @@ async function bootstrap() {
       },
     },
   );
-  await app.listen();
+  const grpc = await NestFactory.createMicroservice<MicroserviceOptions>(
+    TestsetModule,
+    {
+      transport: Transport.GRPC,
+      options: {
+        package: 'testset',
+        protoPath: join(process.cwd(), 'proto', 'testset.proto'),
+        url: '0.0.0.0:50052',
+      },
+    },
+  );
+  await Promise.all([rmq.listen(), grpc.listen()]);
 }
 bootstrap();

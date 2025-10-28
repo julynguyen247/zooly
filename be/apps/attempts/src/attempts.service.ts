@@ -3,26 +3,33 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Attempt } from './entities/attempt.entity';
 import { Answer, PartType } from './entities/answer.entity';
 import { Repository } from 'typeorm';
-import { ClientProxy } from '@nestjs/microservices';
+import type { ClientGrpc } from '@nestjs/microservices';
 import {
   StartAttemptDto,
   SubmitAttemptDto,
   UpsertAnswerDto,
 } from './dto/attempts.dto';
 import { firstValueFrom } from 'rxjs';
+import { CheckAnswerResponse, TestsetServiceGrpc } from './type/testset.grpc';
 
 @Injectable()
-export class AttemptsService {
+export class AttemptsService implements OnModuleInit {
+  private testsetSvc!: TestsetServiceGrpc;
   constructor(
     @InjectRepository(Attempt) private attempts: Repository<Attempt>,
     @InjectRepository(Answer) private answers: Repository<Answer>,
-    @Inject('TEST_CLIENT') private testsetClient: ClientProxy,
+    @Inject('TESTSET_PACKAGE') private testset: ClientGrpc,
   ) {}
+  onModuleInit() {
+    this.testsetSvc =
+      this.testset.getService<TestsetServiceGrpc>('TestsetService');
+  }
   async startAttempt(dto: StartAttemptDto) {
     const ongoing = await this.attempts.findOne({
       where: {
@@ -61,10 +68,10 @@ export class AttemptsService {
     if (attempt.status !== 'ongoing')
       throw new NotFoundException('Attempt not found');
     const check = await firstValueFrom(
-      this.testsetClient.send('testset.checkAnswer', {
+      this.testsetSvc.checkAnswer({
         questionId: dto.questionId,
-        choiceId: dto.choiceId ?? null,
-        userAnswer: dto.userAnswer ?? null,
+        choiceId: dto.choiceId ?? '',
+        userAnswer: dto.userAnswer ?? '',
       }),
     ).catch(() => ({ correct: false, part: dto.part }));
 
